@@ -2,7 +2,7 @@ all:
 	@echo OK
 
 requirements:
-	R -f requirements.R
+	R -f R/requirements.R
 
 .PHONY: requirements
 
