@@ -8,6 +8,8 @@ Personality bibliomtrics project
 - http://www.bibliometrix.org/
 - https://dev.elsevier.com/index.html
 - https://pybliometrics.readthedocs.io/en/stable/
+- https://github.com/pybliometrics-dev/pybliometrics
+- https://github.com/ElsevierDev/elsapy
 
 ## Notes
 
