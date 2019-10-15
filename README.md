@@ -6,6 +6,8 @@ Personality bibliomtrics project
 ## References
 
 - http://www.bibliometrix.org/
+- https://dev.elsevier.com/index.html
+- https://pybliometrics.readthedocs.io/en/stable/
 
 ## Notes
 
