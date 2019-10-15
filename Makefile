@@ -4,5 +4,7 @@ all:
 requirements:
 	R -f R/requirements.R
 
-.PHONY: requirements
+pybliometrics-config:
+	python -c 'import pybliometrics; pybliometrics.pybliometrics.utils.create_config()'
 
+.PHONY: requirements pybliometrics-config
