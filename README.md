@@ -1,9 +1,15 @@
 # personality-bib
 Personality bibliomtrics project
 
+- [Project Board](projects/1)
+
+## References
+
 - http://www.bibliometrix.org/
 
-## 2019-10-08
+## Notes
+
+### 2019-10-08
 
 - Ian: find functions for downloading bibliography entries
 - Chris: upload and share work in progress via GitHub
