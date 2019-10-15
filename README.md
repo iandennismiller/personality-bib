@@ -1,7 +1,7 @@
 # personality-bib
 Personality bibliomtrics project
 
-- [Project Board](projects/1)
+- [Project Board](../../projects/1)
 
 ## References
 
