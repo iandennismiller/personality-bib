@@ -2,6 +2,8 @@
 
 Personality bibliomtrics project
 
+## Resources
+
 - [Project Board](../../projects/1)
 - [Notes](../../blob/master/Notes.md)
 
