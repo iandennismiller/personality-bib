@@ -10,8 +10,12 @@ Personality bibliomtrics project
 ## References
 
 - http://www.bibliometrix.org/
-- https://dev.elsevier.com/index.html
-- https://dev.elsevier.com/api_docs.html
 - https://pybliometrics.readthedocs.io/en/stable/
 - https://github.com/pybliometrics-dev/pybliometrics
 - https://github.com/ElsevierDev/elsapy
+
+### Scopus
+
+- https://dev.elsevier.com/index.html
+- https://dev.elsevier.com/api_docs.html
+- https://dev.elsevier.com/api_key_settings.html (specifically, quotas)
