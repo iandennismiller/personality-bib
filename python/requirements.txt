@@ -1,0 +1,4 @@
+pybliometrics
+wos
+matplotlib
+pandas

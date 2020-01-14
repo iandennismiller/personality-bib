@@ -19,3 +19,4 @@ Personality bibliomtrics project
 - https://dev.elsevier.com/index.html
 - https://dev.elsevier.com/api_docs.html
 - https://dev.elsevier.com/api_key_settings.html (specifically, quotas)
+- https://dev.elsevier.com/guides/ScopusSearchViews.htm
