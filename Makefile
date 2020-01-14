@@ -7,4 +7,7 @@ requirements:
 pybliometrics-config:
 	python -c 'import pybliometrics; pybliometrics.pybliometrics.utils.create_config()'
 
-.PHONY: requirements pybliometrics-config
+notebook:
+	jupyter notebook
+
+.PHONY: requirements pybliometrics-config notebook
