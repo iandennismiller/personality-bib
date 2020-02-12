@@ -1,0 +1,36 @@
+bibtex_fmt = """@ARTICLE{{Cesar2013,
+  author = {{{author}}},
+  title = {{{title}}},
+  year = {{{year}}},
+  volume = {{12}},
+  pages = {{12--23}},
+  journal = {{Nice Journal}},
+  abstract = {{This is an abstract. This line should be long enough to test
+     multilines...}},
+  comments = {{A comment}},
+  keywords = {{keyword1, keyword2}}
+}}
+"""
+
+bibtex_output = ""
+
+for result in s.results:
+    bibtex_output += bibtex.format(
+        author=result.author_names,
+        year="2020",
+        title=result.title
+    )
+
+with open("output.bib", "wb") as f:
+    f.write(bibtex_output.encode('utf8'))
+
+
+NameError Traceback (most recent call last)
+<ipython-input-4-ec6f4de2530b> in <module> 
+
+for result in s.results:
+bibtex_output += bibtex.format(  
+author=result.author_names, 
+year="2020",
+
+NameError: name 'bibtex' is not defined
