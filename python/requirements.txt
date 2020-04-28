@@ -2,3 +2,5 @@ pybliometrics
 wos
 matplotlib
 pandas
+jupyter
+simplejson
