@@ -11,7 +11,6 @@ if (rebuild_data) {
     source("R/importing.R")
     source("R/scoring.R")
     save.image("data/canonical.RData.gz", compress=TRUE)
-}
-else {
+} else {
     load("data/canonical.RData.gz")
 }
