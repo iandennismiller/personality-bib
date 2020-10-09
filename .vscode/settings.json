@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/Users/idm/.virtualenvs/personality-bib/bin/python"
+    "python.pythonPath": "~/.virtualenvs/personality-bib/bin/python",
+    "python.dataScience.jupyterServerURI": "local"
 }

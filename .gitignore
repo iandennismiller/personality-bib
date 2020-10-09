@@ -4,3 +4,4 @@ python/scopus-personality-results.p
 .DS_Store
 .Rhistory
 .RData
+data/canonical.RData.gz

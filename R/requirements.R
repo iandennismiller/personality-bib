@@ -1,1 +1,20 @@
-install.packages(c('bibliometrix'))
+install.packages(c(
+    'bibliometrix',
+    'kintr',
+    "ggplot2",
+    "kableExtra",
+    "gtools",
+    "intergraph",
+    "igraph",
+    "bibtex",
+    "ggnetwork",
+    "ggrepel",
+    "network",
+    "sna",
+    "glasso",
+    "qgraph",
+    "dplyr",
+    "data.table",
+    "gdata",
+    "stringr"
+), dependencies=TRUE, repos='http://cran.rstudio.com/')
