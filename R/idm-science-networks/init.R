@@ -4,12 +4,12 @@
 
 try(clean_env())
 
-rebuild_data = TRUE
+rebuild_data = FALSE
 
 if (rebuild_data) {
-    source("idm-science-networks/includes.R")
-    source("idm-science-networks/importing.R")
-    source("idm-science-networks/scoring.R")
+    source("R/idm-science-networks/includes.R")
+    source("R/idm-science-networks/importing.R")
+    source("R/idm-science-networks/scoring.R")
     save.image("data/canonical.RData.gz", compress=TRUE)
 } else {
     load("data/canonical.RData.gz")

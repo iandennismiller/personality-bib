@@ -2,7 +2,7 @@
 # bibliometrics
 # includes: load all libraries
 
-source("idm-science-networks/utils/util.R")
+source("R/idm-science-networks/utils/util.R")
 # source("R/utils/topcolors.R")
 # source("R/utils/latex.R")
 
