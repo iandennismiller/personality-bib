@@ -10,3 +10,5 @@ Personality bibliomtrics project
 
 - https://psyarxiv.com/y6xz4/
 - https://github.com/isabelladestefano/formalizing_interdisciplinary_collaboration
+- https://osf.io/qwzgd/
+
