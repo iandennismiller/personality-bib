@@ -6,38 +6,39 @@ from pybliometrics.scopus import ScopusSearch
 
 
 journal_issn_map = {
-    'JPSP': {
-        'issn': '0022-3514',
-    },
-    'JRP': {
-        'issn': '0092-6566',
-    },
-    'JP': {
-        'issn': '0022-3506',
-    },
-    'EJP': {
-        'issn': '0890-2070',
-    },
-    'PID': {
-        'issn': '0191-8869',
-    },
-    'PSPB': {
-        'issn': '0146-1672',
-    },
-    'PSPR': {
-        'issn': '1088-8683',
-    },
-    'SPPS': {
-        'issn': '1948-5506',
-    },
-    'JPA': {
-        'issn': '0022-3891',
-    },
-    'SBP': {
-        'issn': '0301-2212',
-    }
+    'JPSP': { 'issn': '0022-3514' },
+    'JRP': { 'issn': '0092-6566' },
+    'JP': { 'issn': '0022-3506' },
+    'EJP': { 'issn': '0890-2070' },
+    'PID': { 'issn': '0191-8869' },
+    'PSPB': { 'issn': '0146-1672' },
+    'PSPR': { 'issn': '1088-8683' },
+    'SPPS': { 'issn': '1948-5506' },
+    'JPA': { 'issn': '0022-3891' },
+    'SBP': { 'issn': '0301-2212' }
 }
 
+interdisciplinary_journal_issn_map = {
+    "Journal of Personality and Social Psychology": {"issn": "0022-3514"},
+    "Personality and Social Psychology Bulletin": {"issn": "0146-1672"},
+    "Personality and Social Psychology Review ": {"issn": "1088-8683"},
+    "Social Psychological and Personality Science ": {"issn": "1948-5506"},
+    "Psychological Assessment":	{"issn": "1040-3590"},
+    "Assessment": {"issn": "1073-1911"},
+    "Psychological Inquiry": {"issn": "1047-840X"},
+    "Psychological Bulletin": {"issn": "0033-2909"},
+    "Psychological Review":	{"issn": "0033-295X"},
+    "American Psychologist": {"issn": "0003-066X"},
+    "SOCIAL BEHAVIOR AND PERSONALITY": {"issn": "0301-2212"},
+    "Journal of Personality Assessment": {"issn": "0022-3891"},
+}
+
+top_personality_journal_issn_map = {
+    "Journal of Research in Personality": {"issn": "0092-6566"},
+    "Journal of Personality": {"issn": "0022-3506"},
+    "European Journal of Personality": {"issn": "0890-2070"},
+    "Personality and Individual Differences": {"issn": "0191-8869"},
+}
 
 # query scopus to build graph from results
 def query_scopus(query_str):
@@ -89,8 +90,10 @@ def add_article(graph, article):
 
 def enrich_coauthors(graph):
     authors = [ v for v in graph.vs() if v["node_type"] == "author" ]
+    print("compute cocitation")
     coauthors = graph.cocitation(authors)
 
+    print("create co-authorship edges")
     for author_idx in range(0, len(coauthors)):
         author_coauthored_with = coauthors[author_idx]
 
@@ -105,21 +108,20 @@ def enrich_coauthors(graph):
     return(graph)
 
 
-def add_journal(graph, issn_str):
-    articles = query_scopus(f'ISSN ( {issn_str} )').results
-
-    for article in articles:
+def add_journal(graph, query_str):
+    for article in query_scopus(query_str).results:
         graph = add_article(graph, article)
 
     return graph
 
 
-def build_graph(journal_issn_map, graph_filename):
+def build_graph(journal_issn_map, graph_filename, query_fmt='ISSN ( {issn} )'):
     graph = igraph.Graph(directed=False)
     for journal in journal_issn_map.keys():
         issn = journal_issn_map[journal]['issn']
-        print(f"Add journal {journal} (ISSN: {issn})")
-        graph = add_journal(graph, issn)
+        query_str = query_fmt.format(issn=issn)
+        print(f"Add journal {journal}; query: {query_str}")
+        graph = add_journal(graph, query_str=query_str)
         graph.write_graphml(graph_filename)
         print("wrote to graphml")
 
@@ -139,16 +141,23 @@ def get_graph(graph_filename):
     return graph
 
 
-def main():
-    # graph = build_graph(journal_issn_map, "personality.graphml")
-
-    graph = get_graph("personality.graphml")
+def do_coauthorship(filename):
+    graph = get_graph(filename)
     graph = enrich_coauthors(graph)
     author_graph = get_authors(graph)
-    author_graph.write_graphml("personality-coauthors.graphml")
-
-    print(graph)
+    author_graph.write_graphml(f"coauthors-{filename}")
 
 
 if __name__ == "__main__":
-    main()
+    # build_graph(
+    #     top_personality_journal_issn_map, 
+    #     "personality-journals.graphml"
+    # )
+    # do_coauthorship("personality-journals.graphml")
+
+    # build_graph(
+    #     interdisciplinary_journal_issn_map,
+    #     "interdisciplinary-journals.graphml",
+    #     query_fmt='ISSN ( {issn} ) AND TITLE-ABS-KEY ( personality )'
+    # )
+    do_coauthorship("interdisciplinary-journals.graphml")
