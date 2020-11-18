@@ -40,6 +40,37 @@ top_personality_journal_issn_map = {
     "Personality and Individual Differences": {"issn": "0191-8869"},
 }
 
+###
+# Per-decade
+
+def add_article_by_decade(graph, article, decade_start, decade_end):
+    article_year = int(article.coverDate.split("-")[0])
+    if article_year >= decade_start and article_year <= decade_end:
+        graph = add_article(graph, article)
+    return graph
+
+
+def add_journal_by_decade(graph, decade_start, decade_end, query_str):
+    for article in query_scopus(query_str).results:
+        graph = add_article_by_decade(graph, article, decade_start, decade_end)
+
+    return graph
+
+
+def build_graph_by_decade(graph, journal_issn_map, graph_filename, decade_start, decade_end, query_fmt='ISSN ( {issn} )'):
+    for journal in journal_issn_map.keys():
+        issn = journal_issn_map[journal]['issn']
+        query_str = query_fmt.format(issn=issn)
+        print(f"Add journal {journal}; query: {query_str}")
+        graph = add_journal_by_decade(graph, decade_start, decade_end, query_str=query_str)
+        graph.write_graphml(graph_filename)
+        print("wrote to graphml")
+
+    return graph
+
+###
+# Regular functions
+
 # query scopus to build graph from results
 def query_scopus(query_str):
     s = ScopusSearch(query_str)
@@ -59,13 +90,6 @@ def add_author(graph, author_name, scopus_id):
         )
 
     assert author_vertex
-    return graph
-
-
-def add_article_by_decade(graph, article, decade_start, decade_end):
-    article_year = int(article.coverDate.split("-")[0])
-    if article_year >= decade_start and article_year <= decade_end:
-        graph = add_article(graph, article)
     return graph
 
 
@@ -122,31 +146,12 @@ def add_journal(graph, query_str):
     return graph
 
 
-def add_journal_by_decade(graph, decade_start, decade_end, query_str):
-    for article in query_scopus(query_str).results:
-        graph = add_article_by_decade(graph, article, decade_start, decade_end)
-
-    return graph
-
-
 def build_graph(graph, journal_issn_map, graph_filename, query_fmt='ISSN ( {issn} )'):
     for journal in journal_issn_map.keys():
         issn = journal_issn_map[journal]['issn']
         query_str = query_fmt.format(issn=issn)
         print(f"Add journal {journal}; query: {query_str}")
         graph = add_journal(graph, query_str=query_str)
-        graph.write_graphml(graph_filename)
-        print("wrote to graphml")
-
-    return graph
-
-
-def build_graph_by_decade(graph, journal_issn_map, graph_filename, decade_start, decade_end, query_fmt='ISSN ( {issn} )'):
-    for journal in journal_issn_map.keys():
-        issn = journal_issn_map[journal]['issn']
-        query_str = query_fmt.format(issn=issn)
-        print(f"Add journal {journal}; query: {query_str}")
-        graph = add_journal_by_decade(graph, decade_start, decade_end, query_str=query_str)
         graph.write_graphml(graph_filename)
         print("wrote to graphml")
 
