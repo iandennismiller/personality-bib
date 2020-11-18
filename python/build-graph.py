@@ -62,6 +62,13 @@ def add_author(graph, author_name, scopus_id):
     return graph
 
 
+def add_article_by_decade(graph, article, decade_start, decade_end):
+    article_year = int(article.coverDate.split("-")[0])
+    if article_year >= decade_start and article_year <= decade_end:
+        graph = add_article(graph, article)
+    return graph
+
+
 def add_article(graph, article):
     article_vertex = graph.add_vertex(
         node_type='article',
@@ -115,13 +122,31 @@ def add_journal(graph, query_str):
     return graph
 
 
-def build_graph(journal_issn_map, graph_filename, query_fmt='ISSN ( {issn} )'):
-    graph = igraph.Graph(directed=False)
+def add_journal_by_decade(graph, decade_start, decade_end, query_str):
+    for article in query_scopus(query_str).results:
+        graph = add_article_by_decade(graph, article, decade_start, decade_end)
+
+    return graph
+
+
+def build_graph(graph, journal_issn_map, graph_filename, query_fmt='ISSN ( {issn} )'):
     for journal in journal_issn_map.keys():
         issn = journal_issn_map[journal]['issn']
         query_str = query_fmt.format(issn=issn)
         print(f"Add journal {journal}; query: {query_str}")
         graph = add_journal(graph, query_str=query_str)
+        graph.write_graphml(graph_filename)
+        print("wrote to graphml")
+
+    return graph
+
+
+def build_graph_by_decade(graph, journal_issn_map, graph_filename, decade_start, decade_end, query_fmt='ISSN ( {issn} )'):
+    for journal in journal_issn_map.keys():
+        issn = journal_issn_map[journal]['issn']
+        query_str = query_fmt.format(issn=issn)
+        print(f"Add journal {journal}; query: {query_str}")
+        graph = add_journal_by_decade(graph, decade_start, decade_end, query_str=query_str)
         graph.write_graphml(graph_filename)
         print("wrote to graphml")
 
@@ -149,15 +174,32 @@ def do_coauthorship(filename):
 
 
 if __name__ == "__main__":
-    # build_graph(
-    #     top_personality_journal_issn_map, 
-    #     "personality-journals.graphml"
-    # )
-    # do_coauthorship("personality-journals.graphml")
+    decade_list = [
+        [1970, 1979], 
+        [1980, 1989], 
+        [1990, 1999], 
+        [2000, 2009], 
+        [2010, 2020], 
+    ]
 
-    # build_graph(
-    #     interdisciplinary_journal_issn_map,
-    #     "interdisciplinary-journals.graphml",
-    #     query_fmt='ISSN ( {issn} ) AND TITLE-ABS-KEY ( personality )'
-    # )
-    do_coauthorship("interdisciplinary-journals.graphml")
+    for decade_start, decade_end in decade_list:
+        # graph = igraph.Graph(directed=False)
+        # build_graph_by_decade(
+        #     top_personality_journal_issn_map, 
+        #     f"personality-journals-{decade_start}s.graphml",
+        #     decade_start=decade_start,
+        #     decade_end=decade_end,
+        # )
+        # do_coauthorship(f"personality-journals-{decade_start}s.graphml")
+
+        # graph = igraph.Graph(directed=False)
+        graph = get_graph(f"personality-journals-{decade_start}s.graphml")
+        build_graph_by_decade(
+            graph,
+            interdisciplinary_journal_issn_map,
+            f"merged-journals-{decade_start}s.graphml",
+            decade_start=decade_start,
+            decade_end=decade_end,
+            query_fmt='ISSN ( {issn} ) AND TITLE-ABS-KEY ( personality )'
+        )
+        do_coauthorship(f"merged-journals-{decade_start}s.graphml")
