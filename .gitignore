@@ -5,3 +5,5 @@
 .Rhistory
 .RData
 /data/canonical.RData.gz
+/personality.graphml
+/personality-coauthors.graphml
