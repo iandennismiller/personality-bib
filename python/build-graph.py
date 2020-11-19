@@ -121,8 +121,10 @@ def add_article(graph, article):
 
 def enrich_coauthors(graph):
     authors = [ v for v in graph.vs() if v["node_type"] == "author" ]
-    print("compute cocitation")
+
+    print("compute bibcoupling")
     coauthors = graph.cocitation(authors)
+    # coauthors = graph.bibcoupling(authors)
 
     print("create co-authorship edges")
     for author_idx in range(0, len(coauthors)):
@@ -131,8 +133,8 @@ def enrich_coauthors(graph):
         for coauthor_idx in range(0, len(author_coauthored_with)):
             if author_coauthored_with[coauthor_idx]:
                 new_edge = graph.add_edge(
-                    graph.vs()[author_idx].index, 
-                    graph.vs()[coauthor_idx].index
+                    authors[author_idx],
+                    graph.vs()[coauthor_idx]
                 )
                 new_edge["edge_type"] = "coauthor"
 
@@ -171,8 +173,7 @@ def get_graph(graph_filename):
     return graph
 
 
-def do_coauthorship(filename):
-    graph = get_graph(filename)
+def do_coauthorship(graph, filename):
     graph = enrich_coauthors(graph)
     author_graph = get_authors(graph)
     author_graph.write_graphml(f"coauthors-{filename}")
@@ -188,18 +189,21 @@ if __name__ == "__main__":
     ]
 
     for decade_start, decade_end in decade_list:
-        # graph = igraph.Graph(directed=False)
-        # build_graph_by_decade(
-        #     top_personality_journal_issn_map, 
-        #     f"personality-journals-{decade_start}s.graphml",
-        #     decade_start=decade_start,
-        #     decade_end=decade_end,
-        # )
+        graph = igraph.Graph(directed=False)
+
+        graph = build_graph_by_decade(
+            graph,
+            top_personality_journal_issn_map, 
+            f"personality-journals-{decade_start}s.graphml",
+            decade_start=decade_start,
+            decade_end=decade_end,
+        )
         # do_coauthorship(f"personality-journals-{decade_start}s.graphml")
 
         # graph = igraph.Graph(directed=False)
-        graph = get_graph(f"personality-journals-{decade_start}s.graphml")
-        build_graph_by_decade(
+        # graph = get_graph(f"personality-journals-{decade_start}s.graphml")
+
+        graph = build_graph_by_decade(
             graph,
             interdisciplinary_journal_issn_map,
             f"merged-journals-{decade_start}s.graphml",
@@ -207,4 +211,5 @@ if __name__ == "__main__":
             decade_end=decade_end,
             query_fmt='ISSN ( {issn} ) AND TITLE-ABS-KEY ( personality )'
         )
-        do_coauthorship(f"merged-journals-{decade_start}s.graphml")
+
+        do_coauthorship(graph, f"merged-journals-{decade_start}s.graphml")
