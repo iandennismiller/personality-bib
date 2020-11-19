@@ -1,0 +1,25 @@
+---
+title: "Per Decade Exploration"
+author: "Ian Dennis Miller"
+date: "11/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(igraph)
+```
+
+## Load data
+
+```{r load}
+graph = read_graph('data/graphs/coauthors-interdisciplinary-journals-1980s.graphml', format="graphml")
+```
+
+## Names of Authors
+
+```{r authors}
+# head(vertex_attr(graph)$author_name)
+# V(graph)[1]$author_name
+head(V(graph)$author_name)
+```
