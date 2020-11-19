@@ -158,15 +158,7 @@ def get_graph(graph_filename):
     return graph
 
 
-def build_per_decade():
-    decade_list = [
-        [1970, 1979], 
-        [1980, 1989], 
-        [1990, 1999], 
-        [2000, 2009], 
-        [2010, 2020], 
-    ]
-
+def build_per_decade(decade_list):
     for decade_start, decade_end in decade_list:
         print(f"Start decade {decade_start}-{decade_end}")
 
@@ -209,9 +201,17 @@ def build_all_time():
     )
 
     enrich_coauthors(graph)
-    graph.write_graphml(f"data/graphs/journals.graphml")
+    graph.write_graphml("data/graphs/journals.graphml")
 
 
 if __name__ == "__main__":
-    # build_per_decade()
-    build_all_time()
+    decade_list = [
+        [1970, 1979], 
+        [1980, 1989], 
+        [1990, 1999], 
+        [2000, 2009], 
+        [2010, 2020], 
+    ]
+
+    build_per_decade(decade_list)
+    # build_all_time()
