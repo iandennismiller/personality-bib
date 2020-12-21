@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import click
 import igraph
 import pandas
 from pybliometrics.scopus import ScopusSearch
@@ -158,53 +159,66 @@ def get_graph(graph_filename):
     return graph
 
 
-def build_per_decade(decade_list):
+def build_per_decade(decade_list, path):
     for decade_start, decade_end in decade_list:
         print(f"Start decade {decade_start}-{decade_end}")
 
         graph = igraph.Graph(directed=False)
 
-        build_graph_by_decade(
-            graph,
-            top_personality_journal_issn_map,
-            decade_start=decade_start,
-            decade_end=decade_end,
-            query_fmt='ISSN ( {issn} )'
-        )
+        # build_graph_by_decade(
+        #     graph,
+        #     top_personality_journal_issn_map,
+        #     decade_start=decade_start,
+        #     decade_end=decade_end,
+        #     query_fmt='ISSN ( {issn} )'
+        # )
 
         build_graph_by_decade(
             graph,
             interdisciplinary_journal_issn_map,
             decade_start=decade_start,
             decade_end=decade_end,
-            query_fmt='ISSN ( {issn} ) AND TITLE-ABS-KEY ( personality )'
+            query_fmt='ISSN ( {issn} ) AND NOT TITLE-ABS-KEY ( personality )'
         )
 
         enrich_coauthors(graph)
-        graph.write_graphml(f"data/graphs/journals-{decade_start}s.graphml",)
+        graph.write_graphml(f"{path}/journals-{decade_start}s.graphml",)
         del(graph)
 
 
-def build_all_time():
+def build_all_time(path):
     graph = igraph.Graph(directed=False)
 
-    build_graph(
-        graph,
-        top_personality_journal_issn_map,
-        query_fmt='ISSN ( {issn} )'
-    )
+    # build_graph(
+    #     graph,
+    #     top_personality_journal_issn_map,
+    #     query_fmt='ISSN ( {issn} )'
+    # )
 
     build_graph(
         graph,
         interdisciplinary_journal_issn_map,
-        query_fmt='ISSN ( {issn} ) AND TITLE-ABS-KEY ( personality )'
+        query_fmt='ISSN ( {issn} ) AND NOT TITLE-ABS-KEY ( personality )'
     )
 
     enrich_coauthors(graph)
-    graph.write_graphml("data/graphs/journals.graphml")
+    graph.write_graphml(f"{path}/journals.graphml")
 
 
-if __name__ == "__main__":
+@click.group()
+def cli():
+    pass
+
+
+@click.command('repl')
+def repl():
+    import IPython
+    IPython.embed()
+
+
+@click.command('per-decade')
+@click.option('--path', default="data/graphs", required=True)
+def do_build_per_decade(path):
     decade_list = [
         [1970, 1979], 
         [1980, 1989], 
@@ -212,6 +226,17 @@ if __name__ == "__main__":
         [2000, 2009], 
         [2010, 2020], 
     ]
+    build_per_decade(decade_list, path)
 
-    build_per_decade(decade_list)
-    # build_all_time()
+
+@click.command('all-time')
+@click.option('--path', default="data/graphs", required=True)
+def do_build_all_time(path):
+    build_all_time(path)
+
+
+cli.add_command(repl)
+cli.add_command(do_build_all_time)
+cli.add_command(do_build_per_decade)
+
+cli()
