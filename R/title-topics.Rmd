@@ -1,0 +1,131 @@
+---
+title: "Article Title Topic Modelling"
+author: "Chris, Ian, and Mark"
+date: "4/17/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tm)
+library(stm)
+library(igraph)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Journal and Coauthorship Graphs
+
+```{r load_data, include=FALSE}
+co_authorship_1990 = read.graph("../data/graphs/coauthors-merged-journals-1990s.GRAPHML", format = "graphml")
+journal_1990 = read.graph("../data/graphs/journals-1990s.GRAPHML", format = "graphml")
+```
+
+## Some useful graph operation examples
+
+```{r examples, include=F}
+# print the title of the article represented by vertex #1
+V(journal_1990)[1]$title
+
+# print the name of the author represented by vertex #2 ("Seta, John J.")
+V(journal_1990)[2]$author_name
+
+# find an author node ID
+author_idx = match("Costa, Paul T.", V(journal_1990)$author_name)
+
+# obtain author by index
+V(journal_1990)[author_idx]
+
+# obtain author relationships
+relationships = E(journal_1990)[ from(author_idx) ]
+
+# obtain all article relationships from an author
+relationships[relationships$edge_type == "authored"]
+
+# obtain all article vertices by an author
+V(journal_1990)[relationships[relationships$edge_type == "authored"]]$title
+
+# obtain all edges from graph as data frame
+edges_data_frame = get.data.frame(journal_1990, what="edges")
+
+# obtain all vertices from graph as data frame
+vertices_data_frame = get.data.frame(journal_1990, what="vertices")
+```
+
+## Extract Main Component
+
+```{r}
+# identify clusters in coauthorship graph
+coauthorship_clusters = igraph::clusters(co_authorship_1990, mode="weak")
+
+# the main component is identified by cluster ID with the maximum cluster size
+biggest_cluster_id <- which.max(coauthorship_clusters$csize)
+
+# obtain vertex IDs for members of this largest cluster
+membership_vertex_ids <- V(co_authorship_1990)[coauthorship_clusters$membership == biggest_cluster_id]
+
+# obtain subgraph consisting of only the members of the main component
+main_component_graph = igraph::induced_subgraph(co_authorship_1990, membership_vertex_ids)
+```
+
+## Cluster authors in main component to identify communities
+
+```{r}
+# obtain communities object using Newman and Girvan's 2004 betweenness clustering approach
+coauthorship_communities = cluster_edge_betweenness(main_component_graph)
+
+# ensure cluster algorithm returns something suitable for passing to communities()
+class(coauthorship_communities)
+
+# double-check that communities are hierarchically nested
+is_hierarchical(coauthorship_communities)
+
+# cut dendrogram at a specific number of merges to obtain desired number of communities
+community_dendrogram = as.dendrogram(coauthorship_communities)
+ten_communities = cut_at(coauthorship_communities, 10)
+
+# assign main component author membership according to our 10 communities
+V(main_component_graph)$membership = ten_communities
+```
+
+## Label articles according to first author's community membership
+
+For each article, obtain community membership of first author and assign to article
+
+```{r}
+# edges_data_frame = get.data.frame(main_component_graph, what = "edges")
+
+get_articles_written_by_author = function(g, name) {
+  author_idx = match(name, V(g)$author_name)
+  # author_node = V(g)[author_idx]
+  author_relationships = E(g)[ from(author_idx) ]
+  author_relationships = author_relationships[author_relationships$edge_type == "authored"]
+  
+  # articles_authored = E(g)[ author_relationships$edge_type == "authored" ]
+  
+  return(author_relationships)
+}
+tmp_articles = get_articles_written_by_author(journal_1990, "Seta, John J.")
+V(journal_1990)[tmp_articles]$title
+# V(journal_1990)[get_articles_written_by_author(journal_1990, "Ward, Lynn")]$title
+```
+
+
+```{r}
+author_vertices_in_subgraph = V(main_component_graph)
+subgraph_scopus_ids = author_vertices_in_subgraph$scopus_id
+author_ids_in_heterogeneous_graph = V(main_component_graph)[V(main_component_graph)$scopus_id %in% subgraph_scopus_ids]
+
+documents = c()
+
+# iterate one author at a time in main component, extracting adjacent authors and articles
+for (author_connection in adjacent_vertices(main_component_graph, author_ids_in_heterogeneous_graph)) {
+  for (target_vertex in author_connection) {
+    # select vertices with node type of article
+    if (V(journal_1990)[target_vertex]$node_type == 'article') {
+      # obtain titles
+      documents = c(documents, (V(journal_1990)[target_vertex]$title))
+    }
+  }
+}
+
+```
+
