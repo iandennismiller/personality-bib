@@ -19,19 +19,6 @@ co_authorship_1990 = read.graph("../data/graphs/coauthors-merged-journals-1990s.
 journal_1990 = read.graph("../data/graphs/journals-1990s.GRAPHML", format = "graphml")
 ```
 
-```{r utilities, include=F}
-get_articles_written_by_author = function(g, name) {
-  # find the index for the vertex representing author specified by 'name'
-  author_idx = match(name, V(g)$author_name)
-  # obtain edges emanating from this vertex ID
-  author_relationships = E(g)[ from(author_idx) ]
-  # select only relationships to articles (i.e. not relationships to other authors)
-  author_relationships = author_relationships[author_relationships$edge_type == "authored"]
-  # returned vertices will be articles by author
-  return(V(journal_1990)[author_relationships])
-}
-```
-
 ```{r examples, include=F}
 # Some useful graph operation examples
 
@@ -44,6 +31,12 @@ V(journal_1990)[2]$author_name
 
 # find an author node ID
 author_idx = match("Costa, Paul T.", V(journal_1990)$author_name)
+
+# obtain author vertices
+V(journal_1990)[V(journal_1990)$node_type == "author"]
+
+# obtain article vertices
+V(journal_1990)[V(journal_1990)$node_type == "article"]
 
 # obtain author by index
 V(journal_1990)[author_idx]
@@ -62,39 +55,79 @@ edges_data_frame = get.data.frame(journal_1990, what="edges")
 
 # obtain all vertices from graph as data frame
 vertices_data_frame = get.data.frame(journal_1990, what="vertices")
+
+# data frame with all authors and articles
+authors = vertices_data_frame[which(vertices_data_frame$node_type == "author"),]
+articles = vertices_data_frame[which(vertices_data_frame$node_type == "article"),]
 ```
 
-## Attributes of nodes in Journals graph
+## Vertex attributes
+
+Upon examining both graphs, we see they have the same columns as each other.
+We can also see that these columns represent a blend of the data schemas for both authors and articles.
+There are columns for `title` and `issn`, which apply only to an article, but also columns for `author_name` and `scopus_id` which are applied to authors.
 
 ```{r}
 list.vertex.attributes(journal_1990)
 ```
 
-## Attributes of nodes in coauthors graph
-
 ```{r}
 list.vertex.attributes(co_authorship_1990)
 ```
 
+This blended, multi-partite (heterogeneous) graph structure can be queried by filtering on the `node_type` attribute.
+
+```{r}
+article_vertices = V(journal_1990)[V(journal_1990)$node_type == "article"]
+```
+
+We can also create data frames to represent each object type independently.
+
+```{r}
+# obtain all vertices from graph as data frame
+vertices_data_frame = get.data.frame(journal_1990, what="vertices")
+
+# data frame with all authors and articles
+authors = vertices_data_frame[which(vertices_data_frame$node_type == "author"),]
+authors = authors[c('id', 'author_name', 'scopus_id')]
+
+articles = vertices_data_frame[which(vertices_data_frame$node_type == "article"),]
+articles = articles[c('id', 'doi', 'issn', 'journal', 'keywords', 'title', 'abstract', 'cover_date')]
+```
+
 ## Extract Main Component
+
+We will examine the coauthorship graph (`co_authorship_1990`), which consists of authors but not articles.
+This step creates a homogenous, as opposed to multi-partite, graph in which all nodes are of a single type (author).
+Correspondingly, all edges between nodes will now be restricted to author-author relationships, including co-authorship.
+The clustering operation is therefore applied to only authors and coauthorship edges, resulting in communities based strictly upon coauthorship relationships among authors.
+
+The coauthorship graph is the result of pre-processing the journal graph to first build authorship edges, in which author nodes are connected to the article nodes they authored.
+The journal graph was then processed to identify co-authorship by creating new edges between authors who were connected to the same article through authorship.
+The final coauthorship graph was then extracted from the multi-partite graph by removing all articles and exporting the resulting graph of authors and coauthorships.
 
 ```{r}
 # identify clusters in coauthorship graph
-coauthorship_clusters = igraph::clusters(co_authorship_1990, mode="weak")
+coauthorship_components = igraph::clusters(co_authorship_1990, mode="weak")
 
 # the main component is identified by cluster ID with the maximum cluster size
-biggest_cluster_id <- which.max(coauthorship_clusters$csize)
+biggest_component_id = which.max(coauthorship_components$csize)
 
 # obtain vertex IDs for members of this largest cluster
-membership_vertex_ids <- V(co_authorship_1990)[coauthorship_clusters$membership == biggest_cluster_id]
+component_membership = V(co_authorship_1990)[coauthorship_components$membership == biggest_component_id]
 
 # obtain subgraph consisting of only the members of the main component
-main_component_graph = igraph::induced_subgraph(co_authorship_1990, membership_vertex_ids)
+main_component_graph = igraph::induced_subgraph(co_authorship_1990, component_membership)
 ```
 
 ## Cluster authors in main component to identify communities
 
-```{r}
+We first obtain communities object using Newman and Girvan's 2004 betweenness clustering approach.
+Next, we inspect the community merge structure created during clustering, which is represented as a dendrogram tree with depth proportional to number of communities.
+To obtain memberships for 10 communities, we cut the dendrogram at a depth of 10.
+Authors are therefore assigned to communities based on the memberships as was merged at this depth in the dendrogram.
+
+```{r author_communities}
 # obtain communities object using Newman and Girvan's 2004 betweenness clustering approach
 coauthorship_communities = cluster_edge_betweenness(main_component_graph)
 
@@ -110,32 +143,63 @@ ten_communities = cut_at(coauthorship_communities, 10)
 
 # assign main component author membership according to our 10 communities
 V(main_component_graph)$membership = ten_communities
+
+# store resulting authors as a data frame
+tmp_data_frame = get.data.frame(main_component_graph, what="vertices")
+df_authors = tmp_data_frame[which(tmp_data_frame$node_type == "author"),]
+df_authors = df_authors[c('id', 'author_name', 'scopus_id', 'membership')]
+head(df_authors)
+```
+
+## Identify articles authored by members of Main Component
+
+```{r}
+main_component_graph
 ```
 
 ## Label articles according to first author's community membership
 
 For each article, obtain community membership of first author and assign to article
 
-```{r}
+```{r utilities, include=F}
+get_articles_written_by_author = function(g, name) {
+  # find the index for the vertex representing author specified by 'name'
+  # author_idx = match(name, V(g)$author_name)
+  author_idx = which(V(g)$author_name == name)
+  if (length(author_idx) > 0) {
+    # obtain edges emanating from this vertex ID
+    author_relationships = try(E(g)[ from(author_idx) ], TRUE)
+    # # select only relationships to articles (i.e. not relationships to other authors)
+    author_relationships = author_relationships[author_relationships$edge_type == "authored"]
+    # # returned vertices will be articles by author
+    # # if (length(author_relationships) > 0) {
+    # 
+    return(V(g)[author_relationships])
+  }
+
+  # }
+}
+
 df = data.frame(
   author_name=character(),
   title=character(),
   community=integer()
 )
 
-for (author_idx in V(main_component_graph)[V(main_component_graph)$node_type == 'author']) {
+for (author_idx in V(main_component_graph)) {
   name = V(main_component_graph)[author_idx]$author_name
-  articles = get_articles_written_by_author(journal_1990, name)
-  for (article_idx in articles) {
-    article = V(main_component_graph)[article_idx]
-    print(article)
-    # df_tmp = data.frame(
-    #   author_name=author$author_name,
-    #   title=article$title,
-    #   community=author$membership,
-    # )
-    # df = rbind(df, df_tmp)
-  }
+  # print(name)
+  articles = get_articles_written_by_author(journal_1990, name)$title
+  print(articles)
+  # for (article_title in articles) {
+  #   print(article_title)
+  #   # df_tmp = data.frame(
+  #   #   author_name=author$author_name,
+  #   #   title=article$title,
+  #   #   community=author$membership,
+  #   # )
+  #   # df = rbind(df, df_tmp)
+  # }
 }
 head(df)
 ```
