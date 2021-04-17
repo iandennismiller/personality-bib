@@ -19,11 +19,25 @@ co_authorship_1990 = read.graph("../data/graphs/coauthors-merged-journals-1990s.
 journal_1990 = read.graph("../data/graphs/journals-1990s.GRAPHML", format = "graphml")
 ```
 
-## Some useful graph operation examples
+```{r utilities, include=F}
+get_articles_written_by_author = function(g, name) {
+  # find the index for the vertex representing author specified by 'name'
+  author_idx = match(name, V(g)$author_name)
+  # obtain edges emanating from this vertex ID
+  author_relationships = E(g)[ from(author_idx) ]
+  # select only relationships to articles (i.e. not relationships to other authors)
+  author_relationships = author_relationships[author_relationships$edge_type == "authored"]
+  # returned vertices will be articles by author
+  return(V(journal_1990)[author_relationships])
+}
+```
 
 ```{r examples, include=F}
-# print the title of the article represented by vertex #1
-V(journal_1990)[1]$title
+# Some useful graph operation examples
+
+# print the title of the article represented by vertex_idx
+vertex_idx = 1
+V(journal_1990)[vertex_idx]$title
 
 # print the name of the author represented by vertex #2 ("Seta, John J.")
 V(journal_1990)[2]$author_name
@@ -48,6 +62,18 @@ edges_data_frame = get.data.frame(journal_1990, what="edges")
 
 # obtain all vertices from graph as data frame
 vertices_data_frame = get.data.frame(journal_1990, what="vertices")
+```
+
+## Attributes of nodes in Journals graph
+
+```{r}
+list.vertex.attributes(journal_1990)
+```
+
+## Attributes of nodes in coauthors graph
+
+```{r}
+list.vertex.attributes(co_authorship_1990)
 ```
 
 ## Extract Main Component
@@ -91,21 +117,27 @@ V(main_component_graph)$membership = ten_communities
 For each article, obtain community membership of first author and assign to article
 
 ```{r}
-# edges_data_frame = get.data.frame(main_component_graph, what = "edges")
+df = data.frame(
+  author_name=character(),
+  title=character(),
+  community=integer()
+)
 
-get_articles_written_by_author = function(g, name) {
-  author_idx = match(name, V(g)$author_name)
-  # author_node = V(g)[author_idx]
-  author_relationships = E(g)[ from(author_idx) ]
-  author_relationships = author_relationships[author_relationships$edge_type == "authored"]
-  
-  # articles_authored = E(g)[ author_relationships$edge_type == "authored" ]
-  
-  return(author_relationships)
+for (author_idx in V(main_component_graph)[V(main_component_graph)$node_type == 'author']) {
+  name = V(main_component_graph)[author_idx]$author_name
+  articles = get_articles_written_by_author(journal_1990, name)
+  for (article_idx in articles) {
+    article = V(main_component_graph)[article_idx]
+    print(article)
+    # df_tmp = data.frame(
+    #   author_name=author$author_name,
+    #   title=article$title,
+    #   community=author$membership,
+    # )
+    # df = rbind(df, df_tmp)
+  }
 }
-tmp_articles = get_articles_written_by_author(journal_1990, "Seta, John J.")
-V(journal_1990)[tmp_articles]$title
-# V(journal_1990)[get_articles_written_by_author(journal_1990, "Ward, Lynn")]$title
+head(df)
 ```
 
 
