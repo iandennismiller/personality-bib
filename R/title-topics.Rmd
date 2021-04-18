@@ -12,11 +12,30 @@ library(igraph)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Load Journal and Coauthorship Graphs
-
 ```{r load_data, include=FALSE}
+# Load Journal and Coauthorship Graphs
 co_authorship_1990 = read.graph("../data/graphs/coauthors-merged-journals-1990s.GRAPHML", format = "graphml")
 journal_1990 = read.graph("../data/graphs/journals-1990s.GRAPHML", format = "graphml")
+```
+
+Inspect number of vertices and edges in `journal_1990`
+
+```{r}
+# edges
+gsize(journal_1990)
+
+# vertices
+gorder(journal_1990)
+```
+
+Inspect number of vertices and edges in `co_authorship_1990`
+
+```{r}
+# edges
+gsize(co_authorship_1990)
+
+# vertices
+gorder(co_authorship_1990)
 ```
 
 ```{r examples, include=F}
@@ -64,8 +83,6 @@ articles = vertices_data_frame[which(vertices_data_frame$node_type == "article")
 ## Vertex attributes
 
 Upon examining both graphs, we see they have the same columns as each other.
-We can also see that these columns represent a blend of the data schemas for both authors and articles.
-There are columns for `title` and `issn`, which apply only to an article, but also columns for `author_name` and `scopus_id` which are applied to authors.
 
 ```{r}
 list.vertex.attributes(journal_1990)
@@ -75,13 +92,15 @@ list.vertex.attributes(journal_1990)
 list.vertex.attributes(co_authorship_1990)
 ```
 
+We can also see that these columns represent a blend of the data schemas for both authors and articles.
+There are columns for `title` and `issn`, which apply only to an article, but also columns for `author_name` and `scopus_id` which are applied to authors.
 This blended, multi-partite (heterogeneous) graph structure can be queried by filtering on the `node_type` attribute.
 
 ```{r}
 article_vertices = V(journal_1990)[V(journal_1990)$node_type == "article"]
 ```
 
-We can also create data frames to represent each object type independently.
+We can also create data frames to represent each object type (authors and articles) independently.
 
 ```{r}
 # obtain all vertices from graph as data frame
@@ -153,75 +172,43 @@ head(df_authors)
 
 ## Identify articles authored by members of Main Component
 
+Now that we have identified which authors belong to which communities, we return to the multi-partite graph (`journal_1990`) in order to connect authors with articles.
+We wish to identify those articles that were published by authors in the main component.
+
 ```{r}
-main_component_graph
-```
-
-## Label articles according to first author's community membership
-
-For each article, obtain community membership of first author and assign to article
-
-```{r utilities, include=F}
-get_articles_written_by_author = function(g, name) {
-  # find the index for the vertex representing author specified by 'name'
-  # author_idx = match(name, V(g)$author_name)
-  author_idx = which(V(g)$author_name == name)
-  if (length(author_idx) > 0) {
-    # obtain edges emanating from this vertex ID
-    author_relationships = try(E(g)[ from(author_idx) ], TRUE)
-    # # select only relationships to articles (i.e. not relationships to other authors)
-    author_relationships = author_relationships[author_relationships$edge_type == "authored"]
-    # # returned vertices will be articles by author
-    # # if (length(author_relationships) > 0) {
-    # 
-    return(V(g)[author_relationships])
-  }
-
-  # }
-}
-
-df = data.frame(
-  author_name=character(),
+df_article_communities = data.frame(
+  id=character(),
   title=character(),
   community=integer()
 )
 
-for (author_idx in V(main_component_graph)) {
-  name = V(main_component_graph)[author_idx]$author_name
-  # print(name)
-  articles = get_articles_written_by_author(journal_1990, name)$title
-  print(articles)
-  # for (article_title in articles) {
-  #   print(article_title)
-  #   # df_tmp = data.frame(
-  #   #   author_name=author$author_name,
-  #   #   title=article$title,
-  #   #   community=author$membership,
-  #   # )
-  #   # df = rbind(df, df_tmp)
-  # }
-}
-head(df)
-```
+for (scopus_id_str in df_authors$scopus_id) {
+  # obtain an author vertex based on Scopus ID
+  author_in_articles_vertex = V(journal_1990)[which(V(journal_1990)$scopus_id == scopus_id_str )]
+  author_in_component_vertex = V(main_component_graph)[which(V(main_component_graph)$scopus_id == scopus_id_str )]
+  author_membership = author_in_component_vertex$membership
+  
+  # identify all edges emanating from this author
+  author_relationships = E(journal_1990)[ from(author_in_articles_vertex) ]
 
+  # filter edges to identify authorship edges only
+  authorship_edges = author_relationships[author_relationships$edge_type == "authored"]
 
-```{r}
-author_vertices_in_subgraph = V(main_component_graph)
-subgraph_scopus_ids = author_vertices_in_subgraph$scopus_id
-author_ids_in_heterogeneous_graph = V(main_component_graph)[V(main_component_graph)$scopus_id %in% subgraph_scopus_ids]
+  # iterate article edges to individually add article IDs to list
+  for (article_edge in authorship_edges) {
+    if (article_edge < gorder(journal_1990)) {
+      article = V(journal_1990)[article_edge]
 
-documents = c()
+      if (article$title != "None") {
+        df_tmp = data.frame(id=as.character(article$id), title=article$title, community=author_membership)
+        df_article_communities = rbind(df_article_communities, df_tmp)
+      }
 
-# iterate one author at a time in main component, extracting adjacent authors and articles
-for (author_connection in adjacent_vertices(main_component_graph, author_ids_in_heterogeneous_graph)) {
-  for (target_vertex in author_connection) {
-    # select vertices with node type of article
-    if (V(journal_1990)[target_vertex]$node_type == 'article') {
-      # obtain titles
-      documents = c(documents, (V(journal_1990)[target_vertex]$title))
     }
   }
 }
 
+head(df_article_communities)
 ```
 
+Once the articles have been identified, they may be labeled according to the communities their authors belong to.
