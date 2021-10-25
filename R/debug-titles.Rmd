@@ -1,0 +1,54 @@
+---
+title: "Debug Article Titles"
+author: "Ian Dennis Miller"
+date: "10/25/2021"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 5
+  pdf_document:
+    highlight: zenburn
+    number_sections: yes
+    toc: yes
+    toc_depth: 5
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir="../reports") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tm)
+library(stm)
+
+source("coauthorship-graph-helper-functions.R")
+```
+
+```{r}
+co_authorship_graph = read.graph("../data/graphs/coauthors-merged-journals-1990s.graphml", format = "graphml")
+journal_graph = read.graph("../data/graphs/journals-1990s.graphml", format = "graphml")
+
+main_component_graph = get_main_component(co_authorship_graph)
+df_article_communities = get_article_communities(journal_graph, main_component_graph)
+```
+
+## What we expected
+
+This article does appear in the DF and demonstrates that the code works 
+
+```{r}
+sum(df_article_communities$title == "Authoritarianism of Parents and Offspring: Intergenerational Politics and Adjustment to College")
+```
+
+## What we got instead
+
+The remaining articles do not appear in DF
+
+```{r}
+sum(df_article_communities$title == "Construction of circumplex scales for the Inventory of Interpersonal Problems")
+sum(df_article_communities$title == "Personality trait structure as a human universal")
+sum(df_article_communities$title == "Evaluating Stability and Change in Personality and Depression")
+sum(df_article_communities$title == "On the accuracy of personality judgment: A realistic approach")
+sum(df_article_communities$title == "The divided self: Concurrent and longitudinal effects of psychological adjustment and social roles on self-concept differentiation")
+```
+

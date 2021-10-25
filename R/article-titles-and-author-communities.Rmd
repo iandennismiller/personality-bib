@@ -1,0 +1,84 @@
+---
+title: "Article Titles and Author Communities"
+author: "Ian Dennis Miller"
+date: "10/25/2021"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 5
+  pdf_document:
+    highlight: zenburn
+    number_sections: yes
+    toc: yes
+    toc_depth: 5
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir="../reports") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tm)
+library(stm)
+
+source("coauthorship-graph-helper-functions.R")
+```
+
+```{r}
+# use the R project instead of setwd()
+
+# Load Journal Graph
+journal_1980 = read.graph("../data/graphs/journals-1980s.graphml", format = "graphml")
+
+# edges
+gsize(journal_1980)
+
+# vertices
+gorder(journal_1980)
+
+# Load Coauthorship Graph
+co_authorship_1980 = read.graph("../data/graphs/coauthors-merged-journals-1980s.graphml", format = "graphml")
+
+# edges
+gsize(co_authorship_1980)
+
+# vertices
+gorder(co_authorship_1980)
+
+articles = get_articles_df(journal_1980)
+authors = get_authors_df(journal_1980)
+```
+
+## Examine Main Component
+
+Also Communities
+
+```{r}
+main_component_graph = get_main_component(co_authorship_1980)
+
+# obtain communities object using Newman and Girvan's 2004 betweenness clustering approach
+coauthorship_communities = cluster_louvain(main_component_graph)
+
+# ensure cluster algorithm returns something suitable for passing to communities()
+class(coauthorship_communities)
+
+# double-check that communities are hierarchically nested
+if (is_hierarchical(coauthorship_communities)) {
+  # cut dendrogram at a specific number of merges to obtain desired number of communities
+  community_dendrogram = as.dendrogram(coauthorship_communities)
+  ten_communities = cut_at(coauthorship_communities, 10)
+}
+
+# assign main component author membership according to our 10 communities
+V(main_component_graph)$membership = coauthorship_communities$membership
+
+#Write GraphML file
+main_component_graph
+# write_graph(main_component_graph, "Full personality Network-August 4th-1980s_communities.graphml", format="graphml")
+```
+
+```{r}
+df_article_communities = get_article_communities(journal_1980, main_component_graph)
+
+head(df_article_communities)
+```

@@ -1,0 +1,113 @@
+---
+title: "Graph Operation Examples"
+author: "Ian Dennis Miller"
+date: "10/25/2021"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 5
+  pdf_document:
+    highlight: zenburn
+    number_sections: yes
+    toc: yes
+    toc_depth: 5
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir="../reports") })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(igraph)
+co_authorship_graph = read.graph("../data/graphs/coauthors-merged-journals-2000s.graphml", format = "graphml")
+journal_graph = read.graph("../data/graphs/journals-2000s.graphml", format = "graphml")
+```
+
+## Some useful graph operation examples
+
+print the title of the article represented by vertex_idx
+
+```{r}
+vertex_idx = 1
+V(journal_graph)[vertex_idx]$title
+```
+
+print the name of the author represented by vertex #2 ("Seta, John J.")
+
+```{r}
+V(journal_graph)[2]$author_name
+```
+
+find an author node ID
+
+```{r}
+author_idx = match("Smith, Eliot R.", V(journal_graph)$author_name)
+author_idx
+```
+
+obtain author vertices
+
+```{r}
+V(journal_graph)[V(journal_graph)$node_type == "author"]
+```
+
+obtain article vertices
+
+```{r}
+V(journal_graph)[V(journal_graph)$node_type == "article"]
+```
+
+obtain author by index
+
+```{r}
+V(journal_graph)[author_idx]
+```
+
+obtain author relationships
+
+```{r}
+relationships = E(journal_graph)[ from(author_idx) ]
+```
+
+obtain all article relationships from an author
+
+```{r}
+relationships[relationships$edge_type == "authored"]
+```
+
+obtain all article vertices by an author
+
+```{r}
+V(journal_graph)[relationships[relationships$edge_type == "authored"]]$title
+```
+
+obtain all edges from graph as data frame
+
+```{r}
+edges_data_frame = get.data.frame(journal_graph, what="edges")
+```
+
+obtain all vertices from graph as data frame
+
+```{r}
+vertices_data_frame = get.data.frame(journal_graph, what="vertices")
+```
+
+data frame with all authors and articles
+
+```{r}
+authors = vertices_data_frame[which(vertices_data_frame$node_type == "author"),]
+articles = vertices_data_frame[which(vertices_data_frame$node_type == "article"),]
+```
+
+Examine Attributes
+
+```{r}
+list.vertex.attributes(journal_graph)
+list.vertex.attributes(co_authorship_graph)
+```
+
+obtain all article vertices
+
+```{r}
+article_vertices = V(journal_graph)[V(journal_graph)$node_type == "article"]
+```
