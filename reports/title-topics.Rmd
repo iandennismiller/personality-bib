@@ -3,6 +3,8 @@ title: "Article Title Topic Modelling"
 author: "Chris, Ian, and Mark"
 date: "4/17/2021"
 output: html_document
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir="../products") })
 ---
 
 ```{r setup, include=FALSE}

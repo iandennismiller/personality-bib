@@ -21,18 +21,31 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tm)
 library(stm)
 
-source("../R/coauthorship-graph-helper-functions.R")
-```
+source("../R/utils/coauthorship-graph-helper-functions.R")
 
-```{r}
 co_authorship_graph = read.graph("../data/graphs/coauthors-merged-journals-1990s.graphml", format = "graphml")
 journal_graph = read.graph("../data/graphs/journals-1990s.graphml", format = "graphml")
-
-main_component_graph = get_main_component(co_authorship_graph)
-df_article_communities = get_article_communities(journal_graph, main_component_graph)
 ```
 
-## What we expected
+## Setting up the graph
+
+### Main Component
+
+```{r}
+main_component_graph = get_main_component(co_authorship_graph)
+main_component_graph
+```
+
+### Article Communities
+
+```{r}
+df_article_communities = get_article_communities(journal_graph, main_component_graph)
+head(df_article_communities)
+```
+
+## Testing for presence of expected articles
+
+### Finding an article we expected
 
 This article does appear in the DF and demonstrates that the code works 
 
@@ -40,9 +53,9 @@ This article does appear in the DF and demonstrates that the code works
 sum(df_article_communities$title == "Authoritarianism of Parents and Offspring: Intergenerational Politics and Adjustment to College")
 ```
 
-## What we got instead
+### Articles that do not appear in DF
 
-The remaining articles do not appear in DF
+These articles are present in the original graph - but not in these communities.
 
 ```{r}
 sum(df_article_communities$title == "Construction of Circumplex Scales for the Inventory of Interpersonal Problems")

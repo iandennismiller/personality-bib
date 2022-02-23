@@ -173,24 +173,75 @@ pre code {
 
 <div id="TOC">
 <ul>
+<li><a href="#setting-up-the-graph">Setting up the graph</a>
+<ul>
+<li><a href="#main-component">Main Component</a></li>
+<li><a href="#article-communities">Article Communities</a></li>
+</ul></li>
+<li><a href="#testing-for-presence-of-expected-articles">Testing for presence of expected articles</a>
+<ul>
 <li><a href="#what-we-expected">What we expected</a></li>
 <li><a href="#what-we-got-instead">What we got instead</a></li>
+</ul></li>
 </ul>
 </div>
 
-<pre class="r"><code>co_authorship_graph = read.graph(&quot;../data/graphs/coauthors-merged-journals-1990s.graphml&quot;, format = &quot;graphml&quot;)
-journal_graph = read.graph(&quot;../data/graphs/journals-1990s.graphml&quot;, format = &quot;graphml&quot;)
-
-main_component_graph = get_main_component(co_authorship_graph)
-df_article_communities = get_article_communities(journal_graph, main_component_graph)</code></pre>
-<div id="what-we-expected" class="section level2">
-<h2>What we expected</h2>
+<div id="setting-up-the-graph" class="section level2">
+<h2>Setting up the graph</h2>
+<div id="main-component" class="section level3">
+<h3>Main Component</h3>
+<pre class="r"><code>main_component_graph = get_main_component(co_authorship_graph)
+main_component_graph</code></pre>
+<pre><code>## IGRAPH fd4e706 U--- 2077 9214 -- 
+## + attr: node_type (v/c), doi (v/l), issn (v/l), title (v/l), cover_date
+## | (v/l), volume (v/l), abstract (v/l), journal (v/l), keywords (v/l),
+## | label (v/c), author_name (v/c), scopus_id (v/c), id (v/c), membership
+## | (v/n), edge_type (e/c)
+## + edges from fd4e706:
+##  [1]  1-- 2  1-- 2  3-- 4  3-- 4  5-- 6  5-- 6  5-- 7  5-- 7  6-- 7  6-- 7
+## [11]  8-- 9  8-- 9 10--11 10--11 12--13 12--13 12--14 12--14 13--14 13--14
+## [21] 16--17 16--17 16--18 16--18 17--18 17--18  2--19  2--19 16--19 16--19
+## [31] 17--19 17--19 18--19 18--19 17--20 17--20 17--21 17--21 20--21 20--21
+## [41] 22--23 22--23 24--25 24--25 19--28 19--28 27--28 27--28 29--30 29--30
+## + ... omitted several edges</code></pre>
+</div>
+<div id="article-communities" class="section level3">
+<h3>Article Communities</h3>
+<pre class="r"><code>df_article_communities = get_article_communities(journal_graph, main_component_graph)
+head(df_article_communities)</code></pre>
+<pre><code>##      id
+## 1 n9782
+## 2  n817
+## 3 n7149
+## 4 n8322
+## 5   n11
+## 6   n20
+##                                                                                                                            title
+## 1                 Where&#39;s poppa? - The relative lack of attention to the role of fathers in child and adolescent psychopathology
+## 2 Erratum: Exaggerated social control and its relationship to the type a behavior pattern (Volume 24, Number 2 (1990) (258-269))
+## 3                                     Attributions of depressed persons: how consistent are they with the covariation principle?
+## 4                                                                   Psychological Predictors of Young Adults&#39; Drinking Behaviors
+## 5                                Authoritarianism of Parents and Offspring: Intergenerational Politics and Adjustment to College
+## 6                                                                                         Defining and Measuring Harmony Control
+##   community
+## 1         1
+## 2         2
+## 3         2
+## 4         2
+## 5         2
+## 6         3</code></pre>
+</div>
+</div>
+<div id="testing-for-presence-of-expected-articles" class="section level2">
+<h2>Testing for presence of expected articles</h2>
+<div id="what-we-expected" class="section level3">
+<h3>What we expected</h3>
 <p>This article does appear in the DF and demonstrates that the code works</p>
 <pre class="r"><code>sum(df_article_communities$title == &quot;Authoritarianism of Parents and Offspring: Intergenerational Politics and Adjustment to College&quot;)</code></pre>
 <pre><code>## [1] 1</code></pre>
 </div>
-<div id="what-we-got-instead" class="section level2">
-<h2>What we got instead</h2>
+<div id="what-we-got-instead" class="section level3">
+<h3>What we got instead</h3>
 <p>The remaining articles do not appear in DF</p>
 <pre class="r"><code>sum(df_article_communities$title == &quot;Construction of Circumplex Scales for the Inventory of Interpersonal Problems&quot;)</code></pre>
 <pre><code>## [1] 0</code></pre>
@@ -202,6 +253,7 @@ df_article_communities = get_article_communities(journal_graph, main_component_g
 <pre><code>## [1] 0</code></pre>
 <pre class="r"><code>sum(df_article_communities$title == &quot;The divided self: Concurrent and longitudinal effects of psychological adjustment and social roles on self-concept differentiation&quot;)</code></pre>
 <pre><code>## [1] 0</code></pre>
+</div>
 </div>
 
 
