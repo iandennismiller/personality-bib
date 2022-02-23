@@ -74,6 +74,9 @@ get_article_communities = function(journal_graph, main_component_graph) {
         }
       }
     }
+
+    # TODO: remove this, we are gonna return after a single iteration
+    # return(df_article_communities)
   }
 
 

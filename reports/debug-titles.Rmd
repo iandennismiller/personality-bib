@@ -22,12 +22,20 @@ library(tm)
 library(stm)
 
 source("../R/utils/coauthorship-graph-helper-functions.R")
-
-co_authorship_graph = read.graph("../data/graphs/coauthors-merged-journals-1990s.graphml", format = "graphml")
-journal_graph = read.graph("../data/graphs/journals-1990s.graphml", format = "graphml")
 ```
 
 ## Setting up the graph
+
+```{r}
+co_authorship_graph = read.graph("../data/graphs/coauthors-merged-journals-1990s.graphml", format = "graphml")
+co_authorship_graph
+```
+
+
+```{r}
+journal_graph = read.graph("../data/graphs/journals-1990s.graphml", format = "graphml")
+journal_graph
+```
 
 ### Main Component
 
@@ -51,11 +59,30 @@ This article does appear in the DF and demonstrates that the code works
 
 ```{r}
 sum(df_article_communities$title == "Authoritarianism of Parents and Offspring: Intergenerational Politics and Adjustment to College")
+# V(main_component_graph)[V(main_component_graph)$title == "Authoritarianism of Parents and Offspring: Intergenerational Politics and Adjustment to College"]
 ```
 
 ### Articles that do not appear in DF
 
-These articles are present in the original graph - but not in these communities.
+The following article is present in the journal_graph but not the article_communities.
+
+```{r}
+V(journal_graph)[V(journal_graph)$node_type == "article" & V(journal_graph)$title == "Authoritarianism of Parents and Offspring: Intergenerational Politics and Adjustment to College"]
+```
+
+```{r}
+V(journal_graph)[V(journal_graph)$node_type == "article" & V(journal_graph)$title == "Construction of Circumplex Scales for the Inventory of Interpersonal Problems"]
+sum(df_article_communities$title == "Construction of Circumplex Scales for the Inventory of Interpersonal Problems")
+V(main_component_graph)[V(main_component_graph)$title == "Construction of Circumplex Scales for the Inventory of Interpersonal Problems"]
+```
+
+An article not present in the journal_graph would look like this:
+
+```{r}
+V(journal_graph)[V(journal_graph)$node_type == "article" & V(journal_graph)$title == "tHis aRtiCLe doEs NoT ExISt"]
+```
+
+Quite a few articles are missing. These articles are present in journal_graph - but not in these communities.
 
 ```{r}
 sum(df_article_communities$title == "Construction of Circumplex Scales for the Inventory of Interpersonal Problems")
@@ -65,3 +92,19 @@ sum(df_article_communities$title == "On the accuracy of personality judgment: A 
 sum(df_article_communities$title == "The divided self: Concurrent and longitudinal effects of psychological adjustment and social roles on self-concept differentiation")
 ```
 
+## Debugging
+
+Which attributes are available in the journal graph?
+
+```{r}
+vertex_attr_names(journal_graph)
+```
+
+
+```{r}
+vertex_attr_names(co_authorship_graph)
+```
+
+```{r}
+vertex_attr_names(main_component_graph)
+```
