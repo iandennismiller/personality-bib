@@ -12,7 +12,7 @@ output:
     toc: yes
     toc_depth: 5
 knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_dir="../reports") })
+  rmarkdown::render(inputFile, encoding = encoding, output_dir="../products") })
 ---
 
 ```{r setup, include=FALSE}
@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tm)
 library(stm)
 
-source("coauthorship-graph-helper-functions.R")
+source("../R/coauthorship-graph-helper-functions.R")
 ```
 
 ```{r}
@@ -45,7 +45,7 @@ sum(df_article_communities$title == "Authoritarianism of Parents and Offspring: 
 The remaining articles do not appear in DF
 
 ```{r}
-sum(df_article_communities$title == "Construction of circumplex scales for the Inventory of Interpersonal Problems")
+sum(df_article_communities$title == "Construction of Circumplex Scales for the Inventory of Interpersonal Problems")
 sum(df_article_communities$title == "Personality trait structure as a human universal")
 sum(df_article_communities$title == "Evaluating Stability and Change in Personality and Depression")
 sum(df_article_communities$title == "On the accuracy of personality judgment: A realistic approach")

@@ -12,7 +12,7 @@ output:
     toc: yes
     toc_depth: 5
 knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_dir="../reports") })
+  rmarkdown::render(inputFile, encoding = encoding, output_dir="../products") })
 ---
 
 ```{r setup, include=FALSE}

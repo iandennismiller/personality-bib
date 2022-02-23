@@ -12,7 +12,7 @@ output:
     toc: yes
     toc_depth: 5
 knit: (function(inputFile, encoding) {
-  rmarkdown::render(inputFile, encoding = encoding, output_dir="../reports") })
+  rmarkdown::render(inputFile, encoding = encoding, output_dir="../products") })
 ---
 
 ```{r setup, include=FALSE}
@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tm)
 library(stm)
 
-source("coauthorship-graph-helper-functions.R")
+source("../R/coauthorship-graph-helper-functions.R")
 ```
 
 ```{r}
