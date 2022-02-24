@@ -17,7 +17,7 @@ knit: (function(inputFile, encoding) {
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(cache = TRUE)
+# knitr::opts_chunk$set(cache = TRUE)
 
 library(tm)
 library(stm)
@@ -55,24 +55,11 @@ There are lots of nodes, they have the names of authors and articles, and there 
 plot(journal_graph, layout=layout_with_lgl, vertex.size=1, vertex.label.cex=0.2)
 ```
 
-### Coauthorship Graph
-
-We obtain the induced subgraph of all authors (i.e. we remove articles, kept authors) in order to preserve only the edges among authors (i.e. co-authorship edges).
-
-```{r load_coauthorship_graph}
-# filter by node_type, keep "author"
-graph_all_authors = V(journal_graph)[V(journal_graph)$node_type == "author"]
-co_authorship_graph = induced.subgraph(graph=journal_graph, vids=graph_all_authors)
-co_authorship_graph
-```
-
-```{r plot_coauthorship_graph}
-plot(co_authorship_graph, layout=layout_with_lgl, vertex.size=1, vertex.label.cex=0.2)
-```
-
 ### Main Component of Graph
 
-The main component graph contains all of the authors who have some collaboration link among them.
+The main component graph contains all of the authors and articles who have some collaboration link among them.
+This step also identifies communities using louvain clustering.
+Clustering was applied to a graph containing both articles and authors so that articles will tend to be assigned membership according to the relative contributions of all co-authors.
 
 ```{r load_main_component_graph}
 main_component_graph = get_main_component(journal_graph)
@@ -87,11 +74,12 @@ We can inspect these graphs to verify that certain authors are present:
 
 ```{r test_find_author}
 find_author(journal_graph, "Pennebaker, James W.")
-find_author(co_authorship_graph, "Pennebaker, James W.")
 find_author(main_component_graph, "Pennebaker, James W.")
 ```
 
 ### Article Communities
+
+The resulting data frame contains the articles, along with community membership, for the main component.
 
 ```{r get_article_communities}
 df_article_communities = get.data.frame(main_component_graph, what="vertices")
@@ -104,6 +92,8 @@ nrow(df_article_communities)
 ```
 
 ## Testing for presence of expected articles
+
+Once we've applied our planned the filters and transforms, we inspect the resulting data frame to ensure that certain articles are still present.
 
 ### Finding an article we expected
 
@@ -133,7 +123,7 @@ The article **Construction of Circumplex Scales for the Inventory of Interperson
 V(journal_graph)[V(journal_graph)$node_type == "article" & V(journal_graph)$title == "Construction of Circumplex Scales for the Inventory of Interpersonal Problems"]
 ```
 
-We can look at the communities df.  It is now there.
+We can look at the communities df.  It is also present in our final data frame.
 
 ```{r check_article_communities_2}
 sum(df_article_communities$title == "construction of circumplex scales for the inventory of interpersonal problems")
@@ -141,7 +131,7 @@ sum(df_article_communities$title == "construction of circumplex scales for the i
 
 ### Other articles that are expected in the data frame
 
-Quite a few articles were missing.  These are all now in the data frame.
+Quite a few articles were missing - but these are all now in the data frame.
 
 ```{r others_not_found}
 sum(df_article_communities$title == "construction of circumplex scales for the inventory of interpersonal problems")
