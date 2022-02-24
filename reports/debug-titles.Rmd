@@ -1,7 +1,7 @@
 ---
 title: "Debug Article Titles"
-author: "Ian Dennis Miller"
-date: "10/25/2021"
+author: "Ian and Chris"
+date: "02/23/2022"
 output:
   html_document:
     toc: yes
@@ -17,6 +17,7 @@ knit: (function(inputFile, encoding) {
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
 
 library(tm)
 library(stm)
@@ -24,87 +25,128 @@ library(stm)
 source("../R/utils/coauthorship-graph-helper-functions.R")
 ```
 
-## Setting up the graph
+## Introduction
 
-```{r}
-co_authorship_graph = read.graph("../data/graphs/coauthors-merged-journals-1990s.graphml", format = "graphml")
-co_authorship_graph
-```
+Chris identified some articles that needed to appear in our 1990s Author+Article+Community graph in order for it to be considered valid.
+This document represents Ian's work to track down the articles - and this was successful.
 
+The ultimate purpose of this work is to ensure that our topic modelling can proceed with a sufficient number of titles per community.
+Having tracked down the missing articles, I think this is now possible.
 
-```{r}
+## Setting up the graphs
+
+### Journal Graph
+
+The Journal Graph consists of all the articles published in journals in the 1990s, along with the authors who published those articles.
+The authors are connected to the journals via "authorship" edges.
+The authors alre also connected to one-another via "coauthorship" edges.
+
+Here we load the graph and display some summary/diagnostic information about it.
+
+```{r load_journal_graph}
 journal_graph = read.graph("../data/graphs/journals-1990s.graphml", format = "graphml")
 journal_graph
 ```
 
-### Main Component
+We can visualize the Journal Graph to see that we have loaded something that looks like the network we expected.
+There are lots of nodes, they have the names of authors and articles, and there are connections among them.
 
-```{r}
-main_component_graph = get_main_component(co_authorship_graph)
+```{r plot_journal_graph}
+plot(journal_graph, layout=layout_with_lgl, vertex.size=1, vertex.label.cex=0.2)
+```
+
+### Coauthorship Graph
+
+We obtain the induced subgraph of all authors (i.e. we remove articles, kept authors) in order to preserve only the edges among authors (i.e. co-authorship edges).
+
+```{r load_coauthorship_graph}
+# filter by node_type, keep "author"
+graph_all_authors = V(journal_graph)[V(journal_graph)$node_type == "author"]
+co_authorship_graph = induced.subgraph(graph=journal_graph, vids=graph_all_authors)
+co_authorship_graph
+```
+
+```{r plot_coauthorship_graph}
+plot(co_authorship_graph, layout=layout_with_lgl, vertex.size=1, vertex.label.cex=0.2)
+```
+
+### Main Component of Graph
+
+The main component graph contains all of the authors who have some collaboration link among them.
+
+```{r load_main_component_graph}
+main_component_graph = get_main_component(journal_graph)
 main_component_graph
+```
+
+```{r plot_main_component_graph}
+plot(main_component_graph, layout=layout_with_lgl, vertex.size=1, vertex.label.cex=0.2)
+```
+
+We can inspect these graphs to verify that certain authors are present:
+
+```{r test_find_author}
+find_author(journal_graph, "Pennebaker, James W.")
+find_author(co_authorship_graph, "Pennebaker, James W.")
+find_author(main_component_graph, "Pennebaker, James W.")
 ```
 
 ### Article Communities
 
-```{r}
-df_article_communities = get_article_communities(journal_graph, main_component_graph)
-head(df_article_communities)
+```{r get_article_communities}
+df_article_communities = get.data.frame(main_component_graph, what="vertices")
+df_article_communities = df_article_communities[df_article_communities$node_type=="article",]
+df_article_communities = df_article_communities[c("doi", "title", "issn", "abstract", "membership")]
+df_article_communities$title = tolower(df_article_communities$title)
+
+head(df_article_communities, n=1)
+nrow(df_article_communities)
 ```
 
 ## Testing for presence of expected articles
 
 ### Finding an article we expected
 
-This article does appear in the DF and demonstrates that the code works 
+The article **Stereotype threat effects on black and white athletic performance** does appear in the communities DF, demonstrating that the code works.
 
-```{r}
-sum(df_article_communities$title == "Authoritarianism of Parents and Offspring: Intergenerational Politics and Adjustment to College")
-# V(main_component_graph)[V(main_component_graph)$title == "Authoritarianism of Parents and Offspring: Intergenerational Politics and Adjustment to College"]
+```{r check_article_communities_1}
+sum(df_article_communities$title == "linguistic styles: language use as an individual difference")
 ```
 
-### Articles that do not appear in DF
+The article is in the journal_graph too.
 
-The following article is present in the journal_graph but not the article_communities.
-
-```{r}
-V(journal_graph)[V(journal_graph)$node_type == "article" & V(journal_graph)$title == "Authoritarianism of Parents and Offspring: Intergenerational Politics and Adjustment to College"]
+```{r check_journal_graph_1}
+V(journal_graph)[V(journal_graph)$title == "Linguistic styles: Language use as an individual difference"]
 ```
 
-```{r}
-V(journal_graph)[V(journal_graph)$node_type == "article" & V(journal_graph)$title == "Construction of Circumplex Scales for the Inventory of Interpersonal Problems"]
-sum(df_article_communities$title == "Construction of Circumplex Scales for the Inventory of Interpersonal Problems")
-V(main_component_graph)[V(main_component_graph)$title == "Construction of Circumplex Scales for the Inventory of Interpersonal Problems"]
-```
+### One articles that does not appear in DF
 
-An article not present in the journal_graph would look like this:
+An article not present in the journal_graph looks like this:
 
-```{r}
+```{r check_journal_graph_not_found}
 V(journal_graph)[V(journal_graph)$node_type == "article" & V(journal_graph)$title == "tHis aRtiCLe doEs NoT ExISt"]
 ```
 
-Quite a few articles are missing. These articles are present in journal_graph - but not in these communities.
+The article **Construction of Circumplex Scales for the Inventory of Interpersonal Problems** is present in the journal_graph.
 
-```{r}
-sum(df_article_communities$title == "Construction of Circumplex Scales for the Inventory of Interpersonal Problems")
-sum(df_article_communities$title == "Personality trait structure as a human universal")
-sum(df_article_communities$title == "Evaluating Stability and Change in Personality and Depression")
-sum(df_article_communities$title == "On the accuracy of personality judgment: A realistic approach")
-sum(df_article_communities$title == "The divided self: Concurrent and longitudinal effects of psychological adjustment and social roles on self-concept differentiation")
+```{r check_journal_graph_2}
+V(journal_graph)[V(journal_graph)$node_type == "article" & V(journal_graph)$title == "Construction of Circumplex Scales for the Inventory of Interpersonal Problems"]
 ```
 
-## Debugging
+We can look at the communities df.  It is now there.
 
-Which attributes are available in the journal graph?
-
-```{r}
-vertex_attr_names(journal_graph)
+```{r check_article_communities_2}
+sum(df_article_communities$title == "construction of circumplex scales for the inventory of interpersonal problems")
 ```
 
+### Other articles that are expected in the data frame
 
-```{r}
-vertex_attr_names(co_authorship_graph)
-```
+Quite a few articles were missing.  These are all now in the data frame.
 
-```{r}
-vertex_attr_names(main_component_graph)
+```{r others_not_found}
+sum(df_article_communities$title == "construction of circumplex scales for the inventory of interpersonal problems")
+sum(df_article_communities$title == "personality trait structure as a human universal")
+sum(df_article_communities$title == "evaluating stability and change in personality and depression")
+sum(df_article_communities$title == "on the accuracy of personality judgment: a realistic approach")
+sum(df_article_communities$title == "the divided self: concurrent and longitudinal effects of psychological adjustment and social roles on self-concept differentiation")
 ```
