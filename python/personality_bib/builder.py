@@ -1,45 +1,9 @@
-#!/usr/bin/env python3
-
 import click
 import igraph
 import pandas
 from pybliometrics.scopus import ScopusSearch
 
-
-journal_issn_map = {
-    'JPSP': { 'issn': '0022-3514' },
-    'JRP': { 'issn': '0092-6566' },
-    'JP': { 'issn': '0022-3506' },
-    'EJP': { 'issn': '0890-2070' },
-    'PID': { 'issn': '0191-8869' },
-    'PSPB': { 'issn': '0146-1672' },
-    'PSPR': { 'issn': '1088-8683' },
-    'SPPS': { 'issn': '1948-5506' },
-    'JPA': { 'issn': '0022-3891' },
-    'SBP': { 'issn': '0301-2212' }
-}
-
-interdisciplinary_journal_issn_map = {
-    "Journal of Personality and Social Psychology": {"issn": "0022-3514"},
-    "Personality and Social Psychology Bulletin": {"issn": "0146-1672"},
-    "Personality and Social Psychology Review ": {"issn": "1088-8683"},
-    "Social Psychological and Personality Science ": {"issn": "1948-5506"},
-    "Psychological Assessment":	{"issn": "1040-3590"},
-    "Assessment": {"issn": "1073-1911"},
-    "Psychological Inquiry": {"issn": "1047-840X"},
-    "Psychological Bulletin": {"issn": "0033-2909"},
-    "Psychological Review":	{"issn": "0033-295X"},
-    "American Psychologist": {"issn": "0003-066X"},
-    "SOCIAL BEHAVIOR AND PERSONALITY": {"issn": "0301-2212"},
-    "Journal of Personality Assessment": {"issn": "0022-3891"},
-}
-
-top_personality_journal_issn_map = {
-    "Journal of Research in Personality": {"issn": "0092-6566"},
-    "Journal of Personality": {"issn": "0022-3506"},
-    "European Journal of Personality": {"issn": "0890-2070"},
-    "Personality and Individual Differences": {"issn": "0191-8869"},
-}
+from . import journal_issn_map, interdisciplinary_journal_issn_map, top_personality_journal_issn_map
 
 ###
 # Per-decade
@@ -65,7 +29,8 @@ def build_graph_by_decade(graph, journal_issn_map, decade_start, decade_end, que
 
 # query scopus to build graph from results
 def query_scopus(query_str):
-    s = ScopusSearch(query_str)
+    print(query_str)
+    s = ScopusSearch(query_str, refresh=1200)
     print(f"Obtained {s.get_results_size()} results")
     return s
 
@@ -159,26 +124,28 @@ def get_graph(graph_filename):
     return graph
 
 
-def build_per_decade(decade_list, path):
+def build_per_decade(decade_list, path, filter_personality=False):
     for decade_start, decade_end in decade_list:
         print(f"Start decade {decade_start}-{decade_end}")
 
         graph = igraph.Graph(directed=False)
-
-        # build_graph_by_decade(
-        #     graph,
-        #     top_personality_journal_issn_map,
-        #     decade_start=decade_start,
-        #     decade_end=decade_end,
-        #     query_fmt='ISSN ( {issn} )'
-        # )
-
+        
+        # add articles from interdisciplinary journals
         build_graph_by_decade(
             graph,
             interdisciplinary_journal_issn_map,
             decade_start=decade_start,
             decade_end=decade_end,
-            query_fmt='ISSN ( {issn} ) AND NOT TITLE-ABS-KEY ( personality )'
+            query_fmt='ISSN ( {issn} ) AND TITLE-ABS-KEY ( personality )'
+        )
+
+        # include everything from the top personality articles
+        build_graph_by_decade(
+            graph,
+            top_personality_journal_issn_map,
+            decade_start=decade_start,
+            decade_end=decade_end,
+            query_fmt='ISSN ( {issn} )'
         )
 
         enrich_coauthors(graph)
@@ -203,40 +170,3 @@ def build_all_time(path):
 
     enrich_coauthors(graph)
     graph.write_graphml(f"{path}/journals.graphml")
-
-
-@click.group()
-def cli():
-    pass
-
-
-@click.command('repl')
-def repl():
-    import IPython
-    IPython.embed()
-
-
-@click.command('per-decade')
-@click.option('--path', default="data/graphs", required=True)
-def do_build_per_decade(path):
-    decade_list = [
-        [1970, 1979], 
-        [1980, 1989], 
-        [1990, 1999], 
-        [2000, 2009], 
-        [2010, 2020], 
-    ]
-    build_per_decade(decade_list, path)
-
-
-@click.command('all-time')
-@click.option('--path', default="data/graphs", required=True)
-def do_build_all_time(path):
-    build_all_time(path)
-
-
-cli.add_command(repl)
-cli.add_command(do_build_all_time)
-cli.add_command(do_build_per_decade)
-
-cli()

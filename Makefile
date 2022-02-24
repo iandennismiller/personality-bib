@@ -11,10 +11,13 @@ pybliometrics-config:
 notebook:
 	jupyter notebook
 
+graph-90s:
+	python3 ./python/graph-runner.py 90s
+
 graph-all-time-not-personality:
-	python3 ./python/build-graph.py all-time --path "data/graph-not-personality"
+	python3 ./python/graph-runner.py all-time --path "data/graph-not-personality"
 
 graph-per-decade-not-personality:
-	python3 ./python/build-graph.py per-decade --path "data/graph-not-personality"
+	python3 ./python/graph-runner.py per-decade --path "data/graph-not-personality"
 
 .PHONY: requirements pybliometrics-config notebook
