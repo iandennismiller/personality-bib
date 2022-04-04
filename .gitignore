@@ -7,7 +7,7 @@
 /data/canonical.RData.gz
 /personality.graphml
 /personality-coauthors.graphml
-/data/graphs/
+# /data/graphs/
 /*.graphml
 data/graph-not-personality/
 title-topics.html
