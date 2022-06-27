@@ -24,7 +24,7 @@ interdisciplinary_journal_issn_map = {
     "American Psychologist": {"issn": "0003-066X"},
     "SOCIAL BEHAVIOR AND PERSONALITY": {"issn": "0301-2212"},
     "Journal of Personality Assessment": {"issn": "0022-3891"},
-    "Annual Review of Psychology": {"issn": "1529-1006"},
+    "Annual Review of Psychology": {"issn": "0066-4308"},
     "Perspectives on Psychological Science": {"issn": "1745-6916"},
 }
 
