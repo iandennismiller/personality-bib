@@ -26,6 +26,7 @@ interdisciplinary_journal_issn_map = {
     "Journal of Personality Assessment": {"issn": "0022-3891"},
     "Annual Review of Psychology": {"issn": "0066-4308"},
     "Perspectives on Psychological Science": {"issn": "1745-6916"},
+    "Psych Science": {"issn": "0956-7976"},
 }
 
 top_personality_journal_issn_map = {
