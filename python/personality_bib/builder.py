@@ -165,7 +165,8 @@ def build_all_time(path):
     build_graph(
         graph,
         interdisciplinary_journal_issn_map,
-        query_fmt='ISSN ( {issn} ) AND NOT TITLE-ABS-KEY ( personality )'
+        query_fmt='ISSN ( {issn} ) AND TITLE-ABS-KEY ( personality )'
+        # query_fmt='ISSN ( {issn} ) AND NOT TITLE-ABS-KEY ( personality )'
     )
 
     enrich_coauthors(graph)
