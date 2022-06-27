@@ -156,11 +156,11 @@ def build_per_decade(decade_list, path, filter_personality=False):
 def build_all_time(path):
     graph = igraph.Graph(directed=False)
 
-    # build_graph(
-    #     graph,
-    #     top_personality_journal_issn_map,
-    #     query_fmt='ISSN ( {issn} )'
-    # )
+    build_graph(
+        graph,
+        top_personality_journal_issn_map,
+        query_fmt='ISSN ( {issn} )'
+    )
 
     build_graph(
         graph,
