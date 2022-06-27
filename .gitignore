@@ -14,3 +14,4 @@ title-topics.html
 /reports/*_cache/
 /data/graphs.bak/
 /products/*_files/
+/.vscode/*.log
