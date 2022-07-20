@@ -1,3 +1,5 @@
+import sys
+from pprint import pprint
 import click
 import igraph
 import pandas
@@ -61,6 +63,7 @@ def add_article(graph, article):
         journal=article.publicationName,
         keywords=article.authkeywords,
         label=f"Article {article.title}",
+        citedby_count=article.citedby_count,
     )
 
     if article.author_ids:
