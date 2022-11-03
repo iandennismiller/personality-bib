@@ -6,3 +6,5 @@ jupyter
 simplejson
 python-igraph
 click
+jupyterlab
+anyascii

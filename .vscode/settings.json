@@ -1,4 +1,17 @@
 {
     "python.pythonPath": "~/.virtualenvs/personality-bib/bin/python",
-    "jupyter.jupyterServerType": "local"
+    "jupyter.jupyterServerType": "local",
+    "files.exclude": {
+        "**/__pycache__/": true,
+        "**/build/": true,
+        "**/dist/": true,
+        "**/*.egg-info/": true,
+        "**/.cache/": true,
+        "**/.Rproj.user/": true,
+        "**/.RData": true,
+        "**/.Rhistory": true,
+        "**/.intermediates": true,
+        "**/.vscode/": true,
+        "**/.ipynb_checkpoints/": true
+    }
 }

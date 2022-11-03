@@ -1,17 +1,12 @@
 .ipynb_checkpoints/
-/python/scopus-personality-results.p
 .Rproj.user
 .DS_Store
 .Rhistory
 .RData
-/data/canonical.RData.gz
-/personality.graphml
-/personality-coauthors.graphml
-# /data/graphs/
-/*.graphml
-data/graph-not-personality/
-title-topics.html
-/reports/*_cache/
+canonical.RData.gz
+/**/*_cache/
+/**/*_files/
 /data/graphs.bak/
-/products/*_files/
 /.vscode/*.log
+/var
+/**/*.egg-info
