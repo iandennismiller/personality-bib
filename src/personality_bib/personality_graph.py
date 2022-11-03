@@ -47,6 +47,6 @@ def build_all_time(filename="../products/graphs/journals.graphml"):
         query_fmt='ISSN ( {issn} ) AND TITLE-ABS-KEY ( personality )'
     )
 
-    graph.enrich_coauthors(graph)
+    graph.enrich_coauthors()
     graph.save_graphml(filename)
     return graph
