@@ -1,5 +1,13 @@
+import statistics
 from pprint import pprint
 
+
+def enrich(graph):
+    enrich_coauthors(graph)
+    enrich_author_components(graph)
+    enrich_author_communities(graph)
+    enrich_article_components(graph)
+    enrich_article_communities(graph)
 
 def enrich_coauthors(graph):
     "Identify coauthors based on shared articles"
@@ -63,3 +71,45 @@ def enrich_author_communities(graph):
         author_vertex["community_id"] = community_id
 
     return graph
+
+def enrich_article_components(graph):
+    print("compute article components")
+
+    articles = graph.subgraph(vertices=[ v for v in graph.vs() if v["node_type"] == "article"])
+
+    for article in articles.vs():
+        # link via title; find vertex in original graph corresponding to article in subgraph
+        title = article["title"]
+        article_vertex = graph.vs.find(title=title, node_type="article")
+
+        # get an authored-by edge from the article vertex
+        authored_by_edges = graph.es.select(_target=article_vertex.index, edge_type="authored")
+        
+
+        if len(authored_by_edges) > 0:
+            author_vertices = [ graph.vs()[e.target] for e in authored_by_edges ]
+            first_author = author_vertices[0]
+            article_vertex["component_id"] = first_author["component_id"]
+        else:
+            # print(f"article {article} has no authors")
+            article_vertex["component_id"] = None
+
+def enrich_article_communities(graph):
+    print("compute article communities")
+
+    articles = graph.subgraph(vertices=[ v for v in graph.vs() if v["node_type"] == "article"])
+
+    for article in articles.vs():
+        # link via title; find vertex in original graph corresponding to article in subgraph
+        title = article["title"]
+        article_vertex = graph.vs.find(title=title, node_type="article")
+
+        # get authored-by edges from the article vertex
+        authored_by_edges = graph.es.select(_target=article_vertex.index, edge_type="authored")
+
+        if len(authored_by_edges) > 0:
+            author_vertices = [ graph.vs()[e.target] for e in authored_by_edges ]
+            mode_community_id = statistics.mode([a['community_id'] for a in author_vertices])
+            article_vertex["community_id"] = mode_community_id
+        else:
+            article_vertex["community_id"] = None

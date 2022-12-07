@@ -3,7 +3,7 @@ import igraph
 from anyascii import anyascii
 
 from .scopus import query_scopus
-from .scopus_enrichment import enrich_coauthors, enrich_author_components, enrich_author_communities
+from .scopus_enrichment import enrich as do_enrich
 
 
 class ScopusGraph(object):
@@ -24,7 +24,7 @@ class ScopusGraph(object):
             issn = journal_issn_map[journal]['issn']
             query_str = query_fmt.format(issn=issn)
 
-            print(f"Add journal {journal}; query: {query_str}")
+            print(f"Scopus: {journal}\n\tQuery: {query_str}; Date Range: {decade_start}-{decade_end}")
             self.add_journal_date_range(decade_start, decade_end, query_str=query_str)
 
     def import_all(self, journal_issn_map, query_fmt):
@@ -33,7 +33,7 @@ class ScopusGraph(object):
             issn = journal_issn_map[journal]['issn']
             query_str = query_fmt.format(issn=issn)
 
-            print(f"Add journal {journal} {issn}")
+            print(f"Scopus: {journal}\n\tQuery: {query_str}")
             self.add_journal(query_str=query_str)
 
     def add_journal_date_range(self, decade_start, decade_end, query_str):
@@ -87,7 +87,6 @@ class ScopusGraph(object):
                 new_edge["edge_type"] = "authored"
 
     def add_journal(self, query_str):
-        print(f"Query: {query_str}")
         for article in query_scopus(query_str).results:
             self.add_article(article)
 
@@ -107,6 +106,4 @@ class ScopusGraph(object):
         print(f"Saved")
 
     def enrich(self):
-        enrich_coauthors(self.graph)
-        enrich_author_components(self.graph)
-        enrich_author_communities(self.graph)
+        do_enrich(self.graph)
