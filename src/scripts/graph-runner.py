@@ -1,29 +1,25 @@
 #!/usr/bin/env python3
 
-import sys
 import click
-import igraph
-import pandas
-from pybliometrics.scopus import ScopusSearch
 
-sys.path.insert(0, '.')
+from personality_bib.personality_graph import build_per_decade, build_all_time
 
-from personality_bib.builder import build_per_decade, build_all_time
 
 @click.group()
 def cli():
     pass
-
 
 @click.command('repl')
 def repl():
     import IPython
     IPython.embed()
 
-
 @click.command('per-decade')
-@click.option('--path', default="data/graphs", required=True)
+@click.option('--path', default="var", required=True)
 def do_build_per_decade(path):
+    filename_fmt=f"{path}/journals-{{decade_start}}s.graphml"
+    print(filename_fmt)
+
     decade_list = [
         [1970, 1979], 
         [1980, 1989], 
@@ -31,22 +27,24 @@ def do_build_per_decade(path):
         [2000, 2009], 
         [2010, 2020], 
     ]
-    build_per_decade(decade_list, path)
-
+    build_per_decade(decade_list, filename_fmt)
 
 @click.command('90s')
-@click.option('--path', default="data/graphs", required=True)
+@click.option('--path', default="var", required=True)
 def do_build_90s(path):
-    decade_list = [
-        [1990, 1999], 
-    ]
-    build_per_decade(decade_list, path)
+    filename_fmt=f"{path}/test-{{decade_start}}s.graphml"
+    print(filename_fmt)
 
+    decade_list = [
+            [1990, 1999], 
+        ]
+
+    build_per_decade(decade_list, filename_fmt)
 
 @click.command('all-time')
-@click.option('--path', default="data/graphs", required=True)
-def do_build_all_time(path):
-    build_all_time(path)
+@click.option('--filename', default="var", required=True)
+def do_build_all_time(filename):
+    build_all_time(filename)
 
 
 cli.add_command(repl)

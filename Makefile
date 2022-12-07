@@ -13,12 +13,12 @@ pybliometrics-config:
 	python -c 'import pybliometrics; pybliometrics.pybliometrics.utils.create_config()'
 
 graph-90s:
-	cd src && python3 ./scripts/graph-runner.py 90s
+	python3 src/scripts/graph-runner.py 90s
 
 graph-all-time:
-	cd src && python3 ./scripts/graph-runner.py all-time --path "../products/graphs/graph-all-time"
+	python3 src/scripts/graph-runner.py all-time --filename ./products/graphs/journals-all.graphml
 
 graph-per-decade:
-	cd src && python3 ./scripts/graph-runner.py per-decade --path "../products/graphs/graph-all-time"
+	python3 src/scripts/graph-runner.py per-decade --path ./products/graphs
 
 .PHONY: requirements pybliometrics-config notebook

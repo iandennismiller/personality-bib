@@ -3,6 +3,7 @@ import igraph
 from anyascii import anyascii
 
 from .scopus import query_scopus
+from .scopus_enrichment import enrich_coauthors, enrich_author_components, enrich_author_communities
 
 
 class ScopusGraph(object):
@@ -71,7 +72,7 @@ class ScopusGraph(object):
             title=title_ascii,
             cover_date=article.coverDate,
             volume=article.issueIdentifier,
-            abstract=abstract_ascii,
+            abstract=abstract_ascii.encode("ascii", "ignore"),
             journal=article.publicationName,
             keywords=keywords_ascii,
             label=f"Article {title_ascii}",
@@ -90,30 +91,6 @@ class ScopusGraph(object):
         for article in query_scopus(query_str).results:
             self.add_article(article)
 
-    def enrich_coauthors(self):
-        authors = [ v for v in self.graph.vs() if v["node_type"] == "author" ]
-
-        print("compute bibcoupling")
-        coauthors = self.graph.cocitation(authors)
-
-        print("create co-authorship edges")
-        new_edge_vertices = []
-
-        for author_idx in range(0, len(coauthors)):
-            author_coauthored_with = coauthors[author_idx]
-
-            for coauthor_idx in range(0, len(author_coauthored_with)):
-                if author_coauthored_with[coauthor_idx]:
-                    new_edge_vertices.append([
-                        authors[author_idx],
-                        self.graph.vs()[coauthor_idx]
-                    ])
-
-        self.graph.add_edges(
-            es=new_edge_vertices,
-            attributes={"edge_type": [ "coauthor" for x in range(0, len(new_edge_vertices)) ]}
-        )
-    
     def get_articles(self):
         return self.graph.subgraph(vertices=[ v for v in self.graph.vs() if v["node_type"] == "article"])
 
@@ -125,5 +102,11 @@ class ScopusGraph(object):
         print("loaded graph")
 
     def save_graphml(self, filename):
+        print(f"Save graph to {filename}")
         self.graph.write_graphml(filename)
-        print(f"Saved graph to {filename}")
+        print(f"Saved")
+
+    def enrich(self):
+        enrich_coauthors(self.graph)
+        enrich_author_components(self.graph)
+        enrich_author_communities(self.graph)

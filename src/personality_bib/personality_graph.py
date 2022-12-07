@@ -4,7 +4,7 @@ from .scopus_graph import ScopusGraph
 from . import journal_issn_map, interdisciplinary_journal_issn_map, top_personality_journal_issn_map
 
 
-def build_per_decade(decade_list, filename_fmt="../products/graphs/journals-{decade_start}s.graphml"):
+def build_per_decade(decade_list, filename_fmt):
 
     for decade_start, decade_end in decade_list:
         print(f"Start decade {decade_start}-{decade_end}")
@@ -27,14 +27,15 @@ def build_per_decade(decade_list, filename_fmt="../products/graphs/journals-{dec
             query_fmt='ISSN ( {issn} )'
         )
 
-        graph.enrich_coauthors()
+        graph.enrich()
+        print(graph.graph.summary())
         graph.save_graphml(filename_fmt.format(decade_start=decade_start))
 
     # return the final graph
     return graph
 
 
-def build_all_time(filename="../products/graphs/journals.graphml"):
+def build_all_time(filename):
     graph = ScopusGraph()
 
     graph.import_all(
@@ -47,6 +48,6 @@ def build_all_time(filename="../products/graphs/journals.graphml"):
         query_fmt='ISSN ( {issn} ) AND TITLE-ABS-KEY ( personality )'
     )
 
-    graph.enrich_coauthors()
+    graph.enrich()
     graph.save_graphml(filename)
     return graph

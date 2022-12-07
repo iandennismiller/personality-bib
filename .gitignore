@@ -10,3 +10,5 @@ canonical.RData.gz
 /.vscode/*.log
 /var
 /**/*.egg-info
+*.pyc
+__pycache__
