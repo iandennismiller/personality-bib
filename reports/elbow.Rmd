@@ -1,0 +1,26 @@
+---
+title: "Untitled"
+author: "idm"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r}
+df1 = read.csv("../var/comm-search3.csv")
+ggplot(df1, aes(x=communities, y=parameter)) + geom_point()
+```
+
+```{r}
+df2 = read.csv("../var/comm-search4.csv")
+ggplot(df2, aes(x=communities, y=parameter)) + geom_point()
+```
+
+```{r}
+df3 = read.csv("../var/comm-search6.csv")
+ggplot(df3, aes(x=communities, y=parameter)) + geom_point()
+```
