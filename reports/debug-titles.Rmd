@@ -22,7 +22,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tm)
 library(stm)
 
-source("../R/utils/coauthorship-graph-helper-functions.R")
+source("../src/R/utils/coauthorship-graph-helper-functions.R")
 ```
 
 ## Introduction
@@ -44,7 +44,7 @@ The authors alre also connected to one-another via "coauthorship" edges.
 Here we load the graph and display some summary/diagnostic information about it.
 
 ```{r load_journal_graph}
-journal_graph = read.graph("../data/graphs/journals-1990s.graphml", format = "graphml")
+journal_graph = read.graph("../products/graphs/journals-1990s.graphml", format = "graphml")
 journal_graph
 ```
 

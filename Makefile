@@ -15,6 +15,12 @@ pybliometrics-config:
 graph-90s:
 	python3 src/scripts/graph-runner.py 90s
 
+graph-00s:
+	python3 src/scripts/graph-runner.py 00s
+
+graph-10s:
+	python3 src/scripts/graph-runner.py 10s
+
 graph-all-time:
 	python3 src/scripts/graph-runner.py all-time --filename ./products/graphs/journals-all.graphml
 

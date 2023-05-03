@@ -4,7 +4,9 @@ matplotlib
 pandas
 jupyter
 simplejson
-python-igraph
+python-igraph==0.10.4
+igraph==0.10.4
 click
 jupyterlab
 anyascii
+louvain
